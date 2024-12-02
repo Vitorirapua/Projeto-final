@@ -51,11 +51,11 @@ def home():
     sql = '''
         SELECT id, title, content, status, date
         FROM notes
-        WHERE status != 'off'  -- Exibe apenas notas com status 'on'
+        WHERE status != 'off' AND user = %s
         ORDER BY id DESC;
     '''
     cur = mysql.connection.cursor()
-    cur.execute(sql)
+    cur.execute(sql, (g.appuser['id'],))
     notes = cur.fetchall()
     cur.close()
 
@@ -127,7 +127,7 @@ def delete_note(id):
         WHERE id = %s
     '''
     cur = mysql.connection.cursor()
-    cur.execute(sql, (id,))
+    cur.execute(sql, (id))
     mysql.connection.commit()
     cur.close()
 
