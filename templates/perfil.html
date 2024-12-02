@@ -8,8 +8,13 @@
         <p><strong>Email:</strong> {{ usuario.email }}</p>
         <p><strong>Data de Nascimento:</strong> {{ usuario.nascimento }}</p>
         <p><strong>Idade:</strong> {{ usuario.idade }} anos</p>
-        
+        <p><strong>Total de Notas Ativas:</strong> {{ usuario.total }}</p>
+
         <a href="{{ url_for('home') }}" class="btn btn-primary">Voltar para Notas</a>
-        <a href="{# url_for('logout') #}" class="btn btn-danger">Sair</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger">Sair</a>
+        <a href="{{ url_for('editaperfil') }}" class="btn btn-info">Editar Perfil</a>
+
+        <button type="buttom" class="btn btn-warning" onclick="if (confirm('Tem certeza que deseja apagar sua conta? Esta ação não pode ser desfeita.')) location.href='/apagausuario'; else return false ">Apagar Conta</button>
+        
     </div>
 {% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'layout.html' %}
+
+{% block title %}Pedido de Nova Senha{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="text-center">Pedido de Nova Senha</h1>
+
+        {% if erro %}
+            <div class="alert alert-danger" role="alert">
+                Não encontramos você! Tente novamente ou cadastre-se.
+            </div>
+        {% endif %}
+
+        {% if novasenha == '' %}
+            <p class="text-center">Preencha os campos abaixo para gerar uma nova senha de acesso.</p>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="email">Seu e-mail</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="nascimento">Sua data de nascimento</label>
+                    <input type="date" class="form-control" id="nascimento" name="nascimento" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Enviar</button>
+            </form>
+
+            <hr>
+            <ul>
+                <li>Lembrou da senha? <a href="{{ url_for('login') }}">Faça login!</a></li>
+                <li>Não é cadastrado? <a href="{{ url_for('cadastro') }}">Clique aqui!</a></li>
+            </ul>
+        {% else %}
+            <p>Sua nova senha temporária é:</p>
+            <p class="novasenha">
+                <input class="novasenha" type="text" id="meuInput" value="{{ novasenha }}" readonly>
+                <button id="copiarBtn">Copiar</button>
+            </p>
+            <p>Lembre-se de anotar essa senha para uso futuro.</p>
+            <p class="center"><button type="button" class="btn btn-primary" onclick="location.href='{{ url_for('login') }}'">Fazer login</button></p>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('copiarBtn').addEventListener('click', function () {
+            const input = document.getElementById('meuInput');
+            input.select();
+            input.setSelectionRange(0, 99999); // Para dispositivos móveis
+
+            try {
+                document.execCommand('copy');
+                alert('Senha copiada para a área de transferência!');
+            } catch (err) {
+                console.error('Falha ao copiar o texto: ', err);
+                alert('Falha ao copiar a senha. Por favor, use Ctrl + C.');
+            }
+        });
+    </script>
+{% endblock %}

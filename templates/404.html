@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block title %}Página Não Encontrada{% endblock %}
+
+{% block content %}
+    <div class="container mt-5 text-center">
+        <h2>Página Não Encontrada (404)</h2>
+        <p>Desculpe, mas a página que você está procurando não existe.</p>
+        <p>Você pode voltar para a <a href="{{ url_for('home') }}" class="btn btn-primary">página inicial</a> ou usar o menu para navegar.</p>
+    </div>
+{% endblock %}
