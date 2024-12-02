@@ -1,9 +1,8 @@
 {% extends 'layout.html' %}
 
-{% block title %}Minhas Notas{% endblock %}
+{% block title %}{{ titulo }}{% endblock %}
 
 {% block content %}
-
     <div class="container mt-5">
         <h1 class="text-center">{{ titulo }}</h1>
 
@@ -23,8 +22,7 @@
                 <input type="password" class="form-control" id="senha" name="senha" required>
             </div>
             <button type="submit" class="btn btn-primary">Entrar</button>
-            <a href="{{ url_for('home') }}" class="btn btn-secondary">Cancelar</a>
+            <a href="{{ url_for('cadastro') }}" class="btn btn-secondary">Cadastre-se</a> <!-- Link para a página de cadastro -->
         </form>
     </div>
-
 {% endblock %}

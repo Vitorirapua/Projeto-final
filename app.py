@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Flask, g, json, make_response, redirect, render_template, request, url_for, flash
 from flask_mysqldb import MySQL
 
-from functions.geral import datetime_para_string, remove_prefixo
+from functions.geral import calcular_idade, datetime_para_string, remove_prefixo
 
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta'  # Necessário para usar flash messages
@@ -29,16 +29,24 @@ def before_request():
     cur.close()
 
     cookie = request.cookies.get('user')
-
+    print('\n\n\n cookie:', cookie ,'\n\n\n')
     if cookie:
         # Se o cookie existe, Converte o valor dele de JSON para dicionário
-        g.user = json.loads(cookie)
+        g.appuser = json.loads(cookie)
     else:
         # Se o cookie não existe, a variável do ususário está vazia
-        g.user = ''
-        
+        g.appuser = ''
+    
+
+
+
+
 @app.route('/')
 def home():
+    if g.appuser == '':
+        return redirect(url_for('login'))
+
+
     sql = '''
         SELECT id, title, content, status, date
         FROM notes
@@ -50,10 +58,15 @@ def home():
     notes = cur.fetchall()
     cur.close()
 
-    return render_template('home.html', notes=notes)
+
+
+    return render_template('home.html', notes=notes, usuario=g.appuser)
 
 @app.route('/new', methods=['GET', 'POST'])
 def new_note():
+    if g.appuser == '':
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         form = dict(request.form)
         sql = '''
@@ -61,17 +74,20 @@ def new_note():
             VALUES (%s, %s, %s)  
         '''
         cur = mysql.connection.cursor()
-        cur.execute(sql, (form['title'], form['content'], g.user['id']))
+        cur.execute(sql, (form['title'], form['content'], g.appuser['id']))
         mysql.connection.commit()
         cur.close()
 
         flash('Nota adicionada com sucesso!', 'success')
         return redirect(url_for('home'))
 
-    return render_template('new_note.html')
+    return render_template('new_note.html', usuario=g.appuser)
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_note(id):
+    if g.appuser == '':
+        return redirect(url_for('login'))
+    
     if request.method == 'POST':
         form = dict(request.form)
         sql = '''
@@ -97,10 +113,13 @@ def edit_note(id):
     note = cur.fetchone()
     cur.close()
 
-    return render_template('edit_note.html', note=note)
+    return render_template('edit_note.html', note=note , usuario=g.appuser)
 
 @app.route('/delete/<int:id>')
 def delete_note(id):
+    if g.appuser == '':
+        return redirect(url_for('login'))
+    
     sql = '''
         UPDATE notes
         SET status = 'off'  -- Muda o status da nota para 'off' em vez de deletá-la
@@ -117,7 +136,7 @@ def delete_note(id):
 @app.route('/login', methods=['GET', 'POST'])  # Rota para login de usuário
 def login():
     # Se o usuário está logado, redireciona para a página de perfil
-    if g.user != '':
+    if g.appuser != '':
         return redirect(url_for('perfil'))
 
     erro = False
@@ -131,7 +150,7 @@ def login():
         # Teste mesa
         # print('\n\n\n FORM:', form, '\n\n\n')
 
-         # Pesquisa se os dados existem no banco de dados → usuario
+         # Pesquisa se os dados existem no banco de dados → g.appuser
         sql = '''
             SELECT *,
                 -- Gera uma versão das datas em pt-BR para salvar no cookie
@@ -194,6 +213,91 @@ def login():
     }
 
     return render_template('login.html', **pagina)
+
+@app.route('/perfil')
+def perfil():
+
+    # Se o usuário não está logado redireciona para a página de login
+    if g.appuser == '':
+        return redirect(url_for('login'))
+
+    # Calcula idade do usuário
+    g.appuser['idade'] = calcular_idade(g.appuser['nascimento'])
+
+    # Obtém a quantidade de trecos ativos do usuário
+    sql = "SELECT count(id) AS total FROM notes WHERE user = %s AND status = 'on'"
+    cur = mysql.connection.cursor()
+    cur.execute(sql, (g.appuser['id'],))
+    row = cur.fetchone()
+    cur.close()
+
+    # Teste de mesa
+    # print('\n\n\n DB', row, '\n\n\n')
+
+    # Adiciona a quantidade ao perfil
+    g.appuser['total'] = row['total']
+
+    # Dados, variáveis e valores a serem passados para o template HTML
+    pagina = {
+        'usuario': g.appuser,
+    }
+
+    # Renderiza o template HTML, passaod valores para ele
+    return render_template('perfil.html', **pagina)
+
+@app.route('/cadastro', methods=['GET', 'POST'])  # Cadastro de usuário
+def cadastro():
+
+    jatem = ''
+    success = False
+
+    # Se o usuário está logado redireciona para a página de perfil
+    if g.appuser != '':
+        return redirect(url_for('perfil'))
+
+    if request.method == 'POST':
+
+        form = dict(request.form)
+
+        # Verifica se usuário já está cadastrado, pelo e-mail
+        sql = "SELECT u_id, u_status FROM usuario WHERE u_email = %s AND u_status != 'del'"
+        cur = mysql.connection.cursor()
+        cur.execute(sql, (form['email'],))
+        rows = cur.fetchall()
+        cur.close()
+
+        # print('\n\n\n LEN:', len(rows), '\n\n\n')
+
+        if len(rows) > 0:
+            # Se já está cadastrado
+            if rows[0]['u_status'] == 'off':
+                jatem = 'Este e-mail já está cadastrado para um usuário inativo. Entre em contato para saber mais.'
+            else:
+                jatem = 'Este e-mail já está cadastrado. Tente fazer login ou solicitar uma nova senha.'
+        else:
+            # Se não está cadastrado, inclui os dados do form no banco de dados
+            sql = "INSERT INTO usuario (u_nome, u_nascimento, u_email, u_senha) VALUES (%s, %s, %s, SHA1(%s))"
+            cur = mysql.connection.cursor()
+            cur.execute(
+                sql, (
+                    form['nome'],
+                    form['nascimento'],
+                    form['email'],
+                    form['senha'],
+                )
+            )
+            mysql.connection.commit()
+            cur.close()
+
+            success = True
+
+    # Dados, variáveis e valores a serem passados para o template HTML
+    pagina = {
+        'jatem': jatem,
+        'success': success,
+    }
+
+    return render_template('cadastro.html', **pagina)
 
 if __name__ == '__main__':
     app.run(debug=True)
