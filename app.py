@@ -127,7 +127,7 @@ def delete_note(id):
         WHERE id = %s
     '''
     cur = mysql.connection.cursor()
-    cur.execute(sql, (id))
+    cur.execute(sql, [id])
     mysql.connection.commit()
     cur.close()
 
@@ -482,11 +482,11 @@ def novasenha():
 
 @app.route('/termos')
 def termos():
-    return render_template('termos.html')
+    return render_template('termos.html', usuario=g.appuser)
 
 @app.route('/privacidade')
 def privacidade():
-    return render_template('privacidade.html')
+    return render_template('privacidade.html', usuario=g.appuser)
 
 @app.errorhandler(404)
 def page_not_found(e):
