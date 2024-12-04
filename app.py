@@ -482,10 +482,15 @@ def novasenha():
 
 @app.route('/termos')
 def termos():
+    if g.appuser == '':
+        return redirect(url_for('login'))
+    
     return render_template('termos.html', usuario=g.appuser)
 
 @app.route('/privacidade')
 def privacidade():
+    if g.appuser == '':
+        return redirect(url_for('login'))
     return render_template('privacidade.html', usuario=g.appuser)
 
 @app.errorhandler(404)
