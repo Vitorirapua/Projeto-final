@@ -5,15 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Notas{% endblock %}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Link do Font Awesome -->
     <style>
         /* Estilo para garantir que o rodapé fique na parte inferior da página */
         body {
             display: flex;
             flex-direction: column;
             min-height: 100vh; /* Faz com que o corpo ocupe pelo menos 100% da altura da tela */
+            transition: background-color 0.5s, color 0.5s; /* Transição suave */
         }
         .content {
             flex: 1; /* Faz com que a área de conteúdo ocupe o espaço restante */
+        }
+        /* Estilos para o modo escuro */
+        .dark-mode {
+            background-color: #000; /* Cor de fundo preto */
+            color: #ccc; /* Cor do texto cinza claro */
+        }
+        .dark-mode .navbar {
+            background-color: #222; /* Cor de fundo da navbar em tom escuro de cinza */
+        }
+        .dark-mode .footer {
+            background-color: #333; /* Cor de fundo do rodapé cinza escuro */
+        }
+        /* Estilos do botão de alternância */
+        #toggleMode {
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; /* Animação suave */
+            border-radius: 20px; /* Bordas arredondadas */
+            padding: 10px 15px; /* Padding para o botão */
+            display: flex; /* Para alinhar o ícone centralmente */
+            align-items: center; /* Alinhamento vertical */
+            justify-content: center; /* Alinhamento horizontal */
+        }
+        /* Estilos para o modo claro */
+        #toggleMode.light {
+            background-color: white; /* Fundo branco */
+            color: black; /* Texto preto */
+        }
+        /* Estilos para o modo escuro */
+        #toggleMode.dark {
+            background-color: #000; /* Fundo preto */
+            color: white; /* Texto branco */
+        }
+        #toggleMode:hover {
+            transform: scale(1.05); /* Aumenta o botão ao passar o mouse */
+        }
+        /* Estilos para o rodapé */
+        .footer {
+            padding: 20px 0; /* Padding no rodapé */
+        }
+        /* Ajustes específicos para mobile */
+        @media (max-width: 576px) {
+            .navbar-nav {
+                text-align: center; /* Centraliza os itens da navbar */
+                width: 100%; /* Faz a navbar ocupar toda a largura */
+            }
+            .nav-link {
+                padding: 10px 0; /* Aumenta o padding vertical dos links */
+                width: 100%; /* Faz os links ocuparem toda a largura */
+                border-bottom: 1px solid #ddd; /* Adiciona uma linha de separação */
+            }
+            .nav-item:last-child .nav-link {
+                border-bottom: none; /* Remove a linha do último link */
+            }
+            #toggleMode {
+                margin: 10px 0; /* Aumenta a margem no botão em mobile */
+                width: 100%; /* Faz o botão ocupar toda a largura */
+            }
         }
     </style>
 </head>
@@ -46,6 +104,9 @@
                         <a class="nav-link" href="/login">Login</a> 
                         {% endif %}
                     </li>
+                    <li class="nav-item">
+                        <button id="toggleMode" class="btn light ml-2"><i class="fas fa-sun"></i></button> <!-- Ícone de sol com margem esquerda -->
+                    </li>
                 </ul>
             </div>
         </div>
@@ -63,10 +124,10 @@
         {% block content %}{% endblock %}
     </div>
 
-    <footer class="bg-light text-center text-lg-start mt-5">
+    <footer class="bg-light text-center text-lg-start mt-5 footer">
         <div class="container p-4">
-            <p class="text-muted mb-1">© 2024 Vitor irapuã.</p>
-            <p class="text-muted mb-1">© 2024 Vinícius irapuã. Todos os direitos reservados.</p>
+            <p class="text-muted mb-1">© 2024 Vitor Irapuã.</p>
+            <p class="text-muted mb-1">© 2024 Vinícius Irapuã. Todos os direitos reservados.</p>
             <div class="d-flex justify-content-center">
                 <a href="/termos" class="text-muted mx-2">Termos de Uso</a>
                 <span class="text-muted">|</span>
@@ -79,7 +140,36 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        // Evita o reenvio dos formulários ao atualizar a página
-        if (window.history.replaceState) window.history.replaceState(null, null, window.location.href);</script>
+        // Verifica se o modo escuro está ativado no localStorage e aplica
+        const toggleButton = document.getElementById('toggleMode');
+        
+        function updateButtonTheme() {
+            if (document.body.classList.contains('dark-mode')) {
+                toggleButton.classList.remove('light');
+                toggleButton.classList.add('dark');
+                toggleButton.innerHTML = '<i class="fas fa-moon"></i>'; // Ícone de lua
+            } else {
+                toggleButton.classList.remove('dark');
+                toggleButton.classList.add('light');
+                toggleButton.innerHTML = '<i class="fas fa-sun"></i>'; // Ícone de sol
+            }
+        }
+
+        if (localStorage.getItem('dark-mode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+        }
+        updateButtonTheme(); // Atualiza o tema do botão na inicialização
+
+        // Lógica para alternar entre modo claro e escuro
+        toggleButton.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('dark-mode', 'enabled'); // Armazena a preferência
+            } else {
+                localStorage.setItem('dark-mode', 'disabled'); // Armazena a preferência
+            }
+            updateButtonTheme(); // Atualiza o tema do botão
+        });
+    </script>
 </body>
 </html>
