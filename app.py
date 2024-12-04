@@ -30,7 +30,7 @@ def before_request():
     cur.close()
 
     cookie = request.cookies.get('user')
-    print('\n\n\n cookie:', cookie ,'\n\n\n')
+    # print('\n\n\n cookie:', cookie ,'\n\n\n')
     if cookie:
         # Se o cookie existe, Converte o valor dele de JSON para dicionário
         g.appuser = json.loads(cookie)
@@ -169,7 +169,7 @@ def login():
 
 
         # Teste mesa
-        print('\n\n\n DB:', user, '\n\n\n')
+        # print('\n\n\n DB:', user, '\n\n\n')
 
         if user == None:
             # Se o usuário não foi encontrado
